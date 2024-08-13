@@ -1,6 +1,16 @@
-class Mastermind
+# welcome to the lobby
+class Lobby
   def initialize
-    puts 'Welcome to Mastermind!'
+    puts %(Tic-Tac-Toe!
+
+       1   2   3
+    a    |   |
+      ---+---+---
+    b    |   |
+      ---+---+---
+    c    |   |
+
+    )
     player_start
   end
 
@@ -18,96 +28,148 @@ class Mastermind
   end
 end
 
+# welcome to the game
 class Game
-  attr_reader :code
-  attr_accessor :correct, :contains, :turn_count, :user_guess
+  attr_accessor :places, :turn_count
 
   def initialize
-    @code = Array.new(4) { Random.rand(1...6) }
-    @user_guess = []
-    @correct = 0
-    @contains = 0
-    @turn_count = 0
-    puts 'you have 9 rounds to guess the 4-digit code.'
-    puts 'the code is 4 digits, numbers 1-6.'
-    puts 'the computer will let you know a) if you have correct numbers, and b) if any of those numbers are in the correct position.'
-    puts "computer code = #{@code}"
-    turn
+    @turn_count = 1
+    @places = {
+      'a1' => ' ', 'a2' => ' ', 'a3' => ' ',
+      'b1' => ' ', 'b2' => ' ', 'b3' => ' ',
+      'c1' => ' ', 'c2' => ' ', 'c3' => ' '
+    }
+
+    player1
   end
 
-  def turn
-    @turn_count += 1
-    @contains = 0
-    @correct = 0
-    puts 'guess the code:'
-    @user_guess = gets.chomp
-    turn_check
+  def puts_board
+    puts ''
+    puts " #{@places['a1']} | #{@places['a2']} | #{@places['a3']} "
+    puts '---+---+---'
+    puts " #{@places['b1']} | #{@places['b2']} | #{@places['b3']} "
+    puts '---+---+---'
+    puts " #{@places['c1']} | #{@places['c2']} | #{@places['c3']} "
+    puts ''
   end
 
-  def turn_check
-      if @user_guess.length == 4 && @user_guess =~ /[0-6]{4}/
-      @user_guess = @user_guess.split('').map(&:to_i)
-      match_check
-     
-      else
-      error
-  
-    end
+  def change_grid(key, symbol)
+    @places[key] = symbol
+    puts_board
+    check_win
   end
 
-  def error
-    puts 'Invalid input. please enter 4 numbers between 1 and 6'
-    turn
-  end
+  def player1
+    puts 'player 1 move:'
+    key = gets.downcase.chomp
 
-  def match_check
-    matches = (@user_guess & @code).flat_map { |n| [n] * [@user_guess.count(n), @code.count(n)].min }
-    @contains = matches.size
-    pos_check
-  end
+    if @places[key] != ' '
 
-  def pos_check
-    comparison_pairs = @code.zip(@user_guess)
-    @correct = comparison_pairs.select { |pair| pair[0] == pair[1] }.count
-    cont_check
-  end
-
-  def cont_check
-    if @user_guess == @code
-      win
-    elsif @turn_count == 10
-      lose
+      error_move
     else
-      puts "guess contains #{@contains} correct numbers"
-      puts "guess contains #{@correct} correct numbers, in the correct position"
-      turn
+      change_grid(key, 'x')
+
     end
   end
 
-  def win
-    puts 'you win!!'
+  def player2
+    puts 'player 2 move:'
+    key = gets.downcase.chomp
+    if @places[key] != ' '
+      error_move
 
-    start = ''
-    until start == 'N'
-      print 'would you like to play another game? (Y/N)'
-      start = gets.upcase.chomp
-      new_game if start == 'Y'
+    else
+      change_grid(key, 'o')
+
     end
   end
 
-  def lose
-    puts 'you lost!'
-    start = ''
-    until start == 'N'
-      print 'would you like to play another game? (Y/N)'
-      start = gets.upcase.chomp
-      new_game if start == 'Y'
-    end
+  def error_move
+    puts 'invalid space.'
+    puts 'space must be unoccupied or a valid coordninate (like a1, b2 or c3)'
+    puts 'please choose another space!'
+    play
   end
 
-  def new_game
-    Game.new
+  def check_win
+    @turn_count += 1
+    # columns
+    # 1
+    if @places['a1'] == 'x' && @places['b1'] == 'x' && @places['c1'] == 'x'
+      x_win
+    elsif @places['a1'] == 'ox' && @places['b1'] == 'o' && @places['c1'] == 'o'
+      o_win
+
+    # 2
+    elsif @places['a2'] == 'x' && @places['b2'] == 'x' && @places['c2'] == 'x'
+      x_win
+    elsif @places['a2'] == 'o' && @places['b2'] == 'o' && @places['c2'] == 'o'
+      o_win
+
+    # 3
+    elsif @places['a3'] == 'x' && @places['b3'] == 'x' && @places['c3'] == 'x'
+      x_win
+    elsif @places['a3'] == 'o' && @places['b3'] == 'o' && @places['c3'] == 'o'
+      o_win
+
+    # rows
+    # a
+    elsif @places['a1'] == 'x' && @places['a2'] == 'x' && @places['a3'] == 'x'
+      x_win
+    elsif @places['a1'] == 'o' && @places['a2'] == 'o' && @places['a3'] == 'o'
+      o_win
+
+    # b
+    elsif @places['b1'] == 'x' && @places['b2'] == 'x' && @places['b3'] == 'x'
+      x_win
+    elsif @places['b1'] == 'o' && @places['b2'] == 'o' && @places['b3'] == 'o'
+      o_win
+
+    # c
+    elsif @places['c1'] == 'x' && @places['c2'] == 'x' && @places['c3'] == 'x'
+      x_win
+    elsif @places['c1'] == 'o' && @places['c2'] == 'o' && @places['c3'] == 'o'
+      o_win
+
+    # diagonals
+    # \
+    elsif @places['a1'] == 'x' && @places['b2'] == 'x' && @places['c3'] == 'x'
+      x_win
+    elsif @places['a1'] == 'o' && @places['b2'] == 'o' && @places['c3'] == 'o'
+      x_win
+
+    # /
+    elsif @places['c1'] == 'x' && @places['b2'] == 'x' && @places['a3'] == 'x'
+      x_win
+    elsif @places['c1'] == 'o' && @places['b2'] == 'o' && @places['a3'] == 'o'
+      o_win
+
+    else
+
+      play
+    end
   end
 end
 
-Mastermind.new
+def x_win
+  puts 'x wins!!'
+  Lobby.new
+end
+
+def o_win
+  puts 'o wins!!'
+  Lobby.new
+end
+
+def play
+  if @turn_count == 10
+    puts "it's a tie!! nobody wins!"
+    Lobby.new
+  elsif @turn_count.odd?
+    player1
+  else
+    player2
+  end
+end
+
+Lobby.new
